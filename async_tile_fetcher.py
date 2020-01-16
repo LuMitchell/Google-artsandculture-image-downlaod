@@ -17,6 +17,12 @@ def exponential_backoff(f, n=5, err=Exception):
 
 @exponential_backoff
 async def fetch(session, url, destination):
+    """
+    'aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host lh3.googleusercontent.com:443 ssl:default'
+    If this error occurs, use the 'http' to get
+    """
+    url = url.replace("https", "http")
+    
     if destination.is_file():
         return destination.read_bytes()
     async with session.get(url) as response:
