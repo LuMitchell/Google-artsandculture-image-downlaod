@@ -40,7 +40,16 @@ class ImageInfo(object):
     RE_URL_PATH_TOKEN = re.compile(rb']\n,"(//[^"/]+/([^"/]+))",(?:"([^"]+)"|null)', re.MULTILINE)
 
     def __init__(self, url):
-        page_source = urllib.request.urlopen(url).read()
+        httpproxy_handler = urllib.request.ProxyHandler(
+            {
+                "http" : "http://127.0.0.1:1080",
+                "https": "http://127.0.0.1:1080"
+            },
+        )
+        
+        opener = urllib.request.build_opener(httpproxy_handler)
+        
+        page_source = opener.open(url).read()
 
         match = self.RE_URL_PATH_TOKEN.search(page_source)
         if match is None:
@@ -52,7 +61,7 @@ class ImageInfo(object):
         self.image_name = '%s - %s' % (string.capwords(self.image_slug.replace("-"," ")), image_id)
 
         meta_info_url = "https:{}=g".format(url_no_proto.decode('utf8'))
-        meta_info_tree = etree.fromstring(urllib.request.urlopen(meta_info_url).read())
+        meta_info_tree = etree.fromstring(opener.open(meta_info_url).read())
         self.tile_width = int(meta_info_tree.attrib['tile_width'])
         self.tile_height = int(meta_info_tree.attrib['tile_height'])
         self.tile_info = [
